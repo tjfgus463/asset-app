@@ -648,8 +648,8 @@ const DEF = {
     '2026.02':{savings:0,invest:4085,pension:150,crypto:1055,card:20},
   }
 };
-let S = (() => { try { const s=sessionStorage.getItem('assetPWA'); return s?JSON.parse(s):JSON.parse(JSON.stringify(DEF)); } catch(e){ return JSON.parse(JSON.stringify(DEF)); } })();
-const persist = () => { try { sessionStorage.setItem('assetPWA', JSON.stringify(S)); } catch(e){} };
+let S = (() => { try { const s=localStorage.getItem('assetPWA'); return s?JSON.parse(s):JSON.parse(JSON.stringify(DEF)); } catch(e){ return JSON.parse(JSON.stringify(DEF)); } })();
+const persist = () => { try { localStorage.setItem('assetPWA', JSON.stringify(S)); } catch(e){} };
 
 let curM = '2025.06';
 let editKey = null;
