@@ -707,7 +707,7 @@ async function runAI(type) {
   };
 
   // ── Gemini API 키를 여기에 입력하세요 ──
-  const GEMINI_KEY = 'AIzaSyCuiZX7cbpN-rtjYozsCX9j5BIxl6HC5UM';
+  const GEMINI_KEY = 'YOUR_GEMINI_API_KEY';
 
   try {
     const res = await fetch(
@@ -756,7 +756,17 @@ async function runAI(type) {
       }
     }
   } catch(e) {
-    box.innerHTML = `<div class="card"><div class="ai-bubble" style="background:rgba(255,77,109,.08);border-color:rgba(255,77,109,.2);color:var(--red)">분석 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.</div></div>`;
+    box.innerHTML = `<div class="card"><div class="ai-bubble" style="background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.2);color:var(--red);">
+      <b style="font-size:14px;">⚠️ AI 오류 발생</b><br><br>
+      <div style="background:rgba(0,0,0,.06);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;word-break:break-all;color:#b91c1c;margin-bottom:10px;">${e.message || String(e)}</div>
+      <div style="font-size:12px;line-height:1.8;color:var(--sub);">
+        체크해주세요:<br>
+        ① GEMINI_KEY가 <b>'AIza...'</b> 형태인지<br>
+        ② Google AI Studio에서 키가 활성화됐는지<br>
+        ③ GitHub에 저장(Commit)을 했는지<br>
+        ④ 페이지를 새로고침했는지
+      </div>
+    </div></div>`;
   }
 }
 
