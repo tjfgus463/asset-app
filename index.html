@@ -714,7 +714,7 @@ async function runAI(type) {
 
   try {
     // Gemini REST API (브라우저 직접 호출 가능)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/Gemini 3.1-Pro-Preview:generateContent?key=${GEMINI_KEY}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
     const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
