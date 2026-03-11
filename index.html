@@ -368,6 +368,23 @@ body{font-family:'Noto Sans KR',sans-serif;-webkit-overflow-scrolling:touch;over
   </div>
 
   <div class="sg">
+    <div class="sg-title">🔑 AI 분석 설정</div>
+    <div class="card" style="padding:14px;">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:10px;line-height:1.6;">
+        <b style="color:var(--text);">Gemini API 키</b><br>
+        aistudio.google.com 에서 무료 발급<br>
+        키는 이 기기에만 저장되고 외부로 전송되지 않아요.
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input class="min" type="password" id="key-input" placeholder="AIzaSy..." style="flex:1;font-size:14px;"
+          oninput="document.getElementById('key-status').textContent=''">
+        <button class="msave" style="width:auto;padding:12px 16px;border-radius:11px;white-space:nowrap;" onclick="saveApiKey()">저장</button>
+      </div>
+      <div id="key-status" style="font-size:12px;margin-top:8px;font-weight:700;"></div>
+    </div>
+  </div>
+
+  <div class="sg">
     <div class="sg-title">데이터 관리</div>
     <div class="srow" onclick="doReset()" style="border-color:rgba(255,77,109,.2);">
       <div class="srow-l"><span class="srow-ico">🗑️</span><div><div class="srow-nm" style="color:var(--red)">전체 초기화</div><div class="srow-sb">모든 자산 기록 삭제</div></div></div>
@@ -413,12 +430,6 @@ body{font-family:'Noto Sans KR',sans-serif;-webkit-overflow-scrolling:touch;over
 </div>
 
 <script>
-// ══════════════════════════════════════
-// 🔑 Gemini API 키를 여기에 입력하세요
-// aistudio.google.com 에서 발급
-// ══════════════════════════════════════
-const GEMINI_KEY = 'AIzaSyDlEmhqVXSRXJ4qayJq9Y-cSdNVNWIL0Gc';
-
 // ══════ DEFAULT ══════
 const DEF = {
   salary: 0,
@@ -580,7 +591,34 @@ function renderChart() {
 }
 
 // ══════ SETTINGS ══════
+function saveApiKey() {
+  const key = document.getElementById('key-input').value.trim();
+  const status = document.getElementById('key-status');
+  if (!key.startsWith('AIza')) {
+    status.textContent = '❌ 올바른 키 형식이 아니에요 (AIza... 로 시작해야 해요)';
+    status.style.color = 'var(--red)';
+    return;
+  }
+  localStorage.setItem('geminiKey', key);
+  status.textContent = '✅ 저장됐어요! AI 코치 탭에서 분석해보세요.';
+  status.style.color = 'var(--acc)';
+  document.getElementById('key-input').value = '';
+  if (navigator.vibrate) navigator.vibrate([10,30,10]);
+}
+
 function renderSettings() {
+  // API 키 상태 표시
+  const savedKey = localStorage.getItem('geminiKey');
+  const status = document.getElementById('key-status');
+  if (status) {
+    if (savedKey) {
+      status.textContent = '✅ API 키 저장됨 (AIza...' + savedKey.slice(-4) + ')';
+      status.style.color = 'var(--acc)';
+    } else {
+      status.textContent = '키가 아직 입력되지 않았어요.';
+      status.style.color = 'var(--muted)';
+    }
+  }
   document.getElementById('ss-sal').textContent  = (S.salary||0) + '만';
   document.getElementById('ss-goal').textContent = goalLabel();
   document.getElementById('fix-settings').innerHTML = (S.fixedItems||[]).map((it,i) => `
@@ -711,6 +749,15 @@ async function runAI(type) {
     spend: `[나의 지출 현황]\n월급여: ${S.salary||0}만원\n고정지출: ${fixStr||'없음'}\n가용자금: ${avail.toFixed(1)}만원\n저축률: ${S.salary>0?(avail/(S.salary)*100).toFixed(1):0}%\n월별자산추이: ${hist||'데이터없음'}\n\n지출 구조의 문제점, 줄일 수 있는 항목, 저축률 개선 방법을 직접적으로 알려줘. 한국어로.`,
     next: `[나의 재무 현황]\n총자산: ${total}만원\n월급여: ${S.salary||0}만원\n가용: ${avail.toFixed(1)}만원\n자산구성: ${assets}\n월별추이: ${hist||'데이터없음'}\n\n다음 달에 반드시 해야 할 구체적인 행동 3가지를 번호 목록으로 알려줘. 각 행동은 실행 가능하고 구체적인 금액/방법 포함. 한국어로.`
   };
+
+  const GEMINI_KEY = localStorage.getItem('geminiKey') || '';
+  if (!GEMINI_KEY) {
+    box.innerHTML = `<div class="card"><div class="ai-bubble" style="background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.2);color:var(--red);">
+      <b>🔑 API 키가 없어요</b><br><br>
+      <span style="font-size:13px;color:var(--sub);">설정 탭에서 Gemini API 키를 입력해주세요.</span>
+    </div></div>`;
+    return;
+  }
 
   try {
     // Gemini REST API - 공식 문서 기준 올바른 방식
