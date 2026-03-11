@@ -61,6 +61,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);-webkit-overfl
 .pg{position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;gap:10px;padding:12px 14px 18px;}
 .pg.on{display:flex;}
 .pg::-webkit-scrollbar{display:none;}
+/* AI 탭 전용 — 내부 두 영역으로 분리 */
+#pg-ai{overflow:hidden !important;padding:0 !important;gap:0 !important;}
+#chat-area{flex:1;min-height:0;overflow-y:auto !important;-webkit-overflow-scrolling:touch;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;}
+#chat-area::-webkit-scrollbar{display:none;}
+.chat-input-wrap{flex-shrink:0;}
 
 /* ── CARD ── */
 .card{background:var(--card);border-radius:16px;padding:15px;border:1px solid var(--border);}
@@ -274,8 +279,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);-webkit-overfl
 </div>
 
 <!-- ══ AI 코치 ══ -->
-<div class="pg" id="pg-ai" style="padding:0;gap:0;display:none;flex-direction:column;">
-  <div id="chat-area" style="flex:1;overflow-y:auto;overflow-x:hidden;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;">
+<div class="pg" id="pg-ai">
+  <div id="chat-area">
     <div class="notice">💡 <b>AI 재무 코치</b> — 자산 데이터 기반으로 분석해드려요. 자유롭게 질문하거나 빠른 분석을 선택하세요.</div>
     <div class="card">
       <div class="ctitle">빠른 분석</div>
@@ -291,7 +296,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);-webkit-overfl
     <div id="chat-messages" style="display:flex;flex-direction:column;gap:10px;"></div>
     <div id="pred-box" style="display:none;"></div>
   </div>
-  <div class="chat-input-wrap" style="flex-shrink:0;">
+  <div class="chat-input-wrap">
     <textarea class="chat-in" id="chatIn" placeholder="자산에 대해 자유롭게 질문하세요..." rows="1"
       oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
@@ -537,6 +542,8 @@ function showPg(name) {
   const pg=document.getElementById('pg-'+name);
   pg.style.display='flex';
   pg.classList.add('on');
+  // AI 탭은 채팅영역 스크롤 아래로
+  if(name==='ai') setTimeout(()=>{const a=document.getElementById('chat-area');if(a)a.scrollTop=a.scrollHeight;},100);
   document.getElementById('nav-'+name).classList.add('on');
   if(name==='home')renderHome();
   if(name==='settings')renderSettings();
@@ -666,7 +673,7 @@ function buildWidget(id) {
   if(id==='chart') {
     const div=document.createElement('div');
     div.className='card chart-wrap';
-    div.innerHTML=`<div class="ctitle">자산 추이</div><svg id="chartSvg" width="100%" height="110" style="display:block;"></svg>`;
+    div.innerHTML=`<div class="ctitle">순자산 추이</div><svg id="chartSvg" width="100%" height="110" style="display:block;"></svg>`;
     setTimeout(()=>renderChart(),50);
     return div;
   }
@@ -715,7 +722,7 @@ function renderDetailList(cat) {
 function renderChart() {
   const svg=document.getElementById('chartSvg'); if(!svg)return;
   const W=svg.clientWidth||300,H=110;
-  const ms=sortMs().slice(-8), vals=ms.map(m=>calcT(m));
+  const ms=sortMs().slice(-8), vals=ms.map(m=>Math.max(0, calcT(m)-calcL()));
   if(vals.every(v=>v===0)){svg.innerHTML='<text x="50%" y="58" text-anchor="middle" font-size="12" fill="#9099bb" font-family="Plus Jakarta Sans">자산 데이터를 입력해주세요</text>';return;}
   const max=Math.max(...vals,1); const pad={l:8,r:8,t:18,b:26};
   const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
